@@ -1,0 +1,10 @@
+# Required for pyuwsgi
+setuptools
+# Production Web Server
+pyuwsgi
+# Framework
+flask
+# ORM
+flask_sqlalchemy
+# Security
+flask-security-too
