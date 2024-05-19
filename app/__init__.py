@@ -7,7 +7,7 @@ from app.models import db_session, init_db
 from app.models.authentication import User, Role
 
 # Create app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['DEBUG'] = True
 
 # Generate a nice key using secrets.token_urlsafe()
@@ -27,20 +27,14 @@ app.teardown_appcontext(lambda exc: db_session.close())
 user_datastore = SQLAlchemySessionUserDatastore(db_session, User, Role)
 app.security = Security(app, user_datastore)
 
-from .welcome import blueprint as welcome_blueprint
+from app.blueprints.welcome import blueprint as welcome_blueprint
 app.register_blueprint(welcome_blueprint)
 
-@app.route("/user")
-@auth_required()
-@permissions_accepted("user-read")
-def user_home():
-    return render_template_string("Hello {{ current_user.email }} you are a user!")
+from app.blueprints.user import blueprint as user_blueprint
+app.register_blueprint(user_blueprint)
 
-@app.route("/admin")
-@auth_required()
-@permissions_accepted("admin")
-def admin_home():
-    return render_template_string("Hello {{ current_user.email }} you are an admin!")
+from app.blueprints.admin import blueprint as admin_blueprint
+app.register_blueprint(admin_blueprint)
 
 # one time setup
 with app.app_context():
