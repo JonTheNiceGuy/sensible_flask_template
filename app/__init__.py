@@ -19,6 +19,9 @@ app.config['SECURITY_PASSWORD_SALT'] = os.environ.get("SECURITY_PASSWORD_SALT", 
 app.config["SECURITY_EMAIL_VALIDATOR_ARGS"] = {
     "check_deliverability": False if os.environ.get('CHECK_EMAIL_DOMAIN_IS_FINDABLE', 'false').lower == 'false' else True
 }
+# Enable registration
+app.config['SECURITY_REGISTERABLE'] = True if os.environ.get('REGISTRATION_AVAILABLE', 'true').lower() == 'true' else False
+app.config['SECURITY_SEND_REGISTER_EMAIL'] = True if os.environ.get('SEND_REGISTRATION_EMAIL', 'false').lower() == 'true' else False
 
 # manage sessions per request - make sure connections are closed and returned
 app.teardown_appcontext(lambda exc: db_session.close())
