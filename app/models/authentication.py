@@ -1,5 +1,5 @@
 from . import Base
-from flask_security import UserMixin, RoleMixin, AsaList
+from flask_security import UserMixin, RoleMixin, AsaList, hash_password
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy import Boolean, DateTime, Column, Integer, \
@@ -46,3 +46,22 @@ class User(Base, UserMixin):
             lazy='dynamic'
         )
     )
+
+def initial_user_setup():
+    from app import app, db_session
+    app.security.datastore.find_or_create_role(
+        name="user", permissions={"user-read", "user-write"}
+    )
+    app.security.datastore.find_or_create_role(
+        name="admin", permissions={"user-read", "user-write", "admin"}
+    )
+    db_session.commit()
+    first_user = db_session.query(User).first()
+    if not first_user:
+        import os
+        app.security.datastore.create_user(
+            email=os.environ.get('FIRST_ADMIN_USERNAME', 'admin@example.org'),
+            password=hash_password(os.environ.get('FIRST_ADMIN_PASSWORD', 'Default-Password-Yes1')),
+            roles=["admin"]
+        )
+        db_session.commit()

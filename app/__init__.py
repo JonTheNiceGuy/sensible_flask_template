@@ -1,10 +1,9 @@
 import os
 
-from flask import Flask, render_template_string
-from flask_security import Security, current_user, auth_required, hash_password, \
-     SQLAlchemySessionUserDatastore, permissions_accepted
+from flask import Flask
+from flask_security import Security, SQLAlchemySessionUserDatastore
 from app.models import db_session, init_db
-from app.models.authentication import User, Role
+from app.models.authentication import User, Role, initial_user_setup
 
 # Create app
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -39,25 +38,11 @@ app.register_blueprint(user_blueprint)
 from app.blueprints.admin import blueprint as admin_blueprint
 app.register_blueprint(admin_blueprint)
 
-# one time setup
+# initial setup
 with app.app_context():
     init_db()
     # Create a user and role to test with
-    app.security.datastore.find_or_create_role(
-        name="user", permissions={"user-read", "user-write"}
-    )
-    app.security.datastore.find_or_create_role(
-        name="admin", permissions={"user-read", "user-write", "admin"}
-    )
-    db_session.commit()
-    first_user = db_session.query(User).first()
-    if not first_user:
-        app.security.datastore.create_user(
-            email=os.environ.get('FIRST_ADMIN_USERNAME', 'admin@example.org'),
-            password=hash_password(os.environ.get('FIRST_ADMIN_PASSWORD', 'Default-Password-Yes1')),
-            roles=["admin"]
-        )
-        db_session.commit()
+    initial_user_setup()
 
 if __name__ == '__main__':
     # run application (can also use flask run)
